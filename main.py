@@ -31,7 +31,7 @@ def API() :
         # Load your Dataset
         # For this example, let's assume the Dataset is in a CSV file called 'DibetesData.CSV'
         # and it has a 'target' column where 1 indicates diabetic and 0 indicates non-diabetic
-        DataFile = "http://127.0.0.1:5000/static/DATA/DibetesData.CSV"
+        DataFile = "/static/DibetesData.CSV"
         Data = pd.read_csv(DataFile)
 
         # Split the Data into features and target

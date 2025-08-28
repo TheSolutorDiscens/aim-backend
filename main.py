@@ -7,14 +7,14 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 
-App = Flask(__name__)
-CORS(App)
+app = Flask(__name__)
+CORS(app)
 
-@App.route("/")
+@app.route("/")
 def Home() :
     return {"message": "AIM Backend is Live!!!"}
 
-@App.route("/API", methods=["GET", "POST"])
+@app.route("/API", methods=["GET", "POST"])
 def API() :
     if request.method == "POST" :
         PN = float(request.json.get("Pregnancies"))
@@ -80,4 +80,4 @@ def API() :
 
 if __name__ == "__main__":
 
-    App.run(host="0.0.0.0", port=8000, debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=True)

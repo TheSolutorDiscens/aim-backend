@@ -28,9 +28,7 @@ def API() :
 
         jsonify(PN, GL, BP, ST, INSU, BMI, DPF, AGE)
 
-        # Load your Dataset
-        # For this example, let's assume the Dataset is in a CSV file called 'DibetesData.CSV'
-        # and it has a 'target' column where 1 indicates diabetic and 0 indicates non-diabetic
+        # it has a 'target' column where 1 indicates diabetic and 0 indicates non-diabetic
         DataFile = "/static/DibetesData.CSV"
         Data = pd.read_csv(DataFile)
 

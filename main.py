@@ -2,6 +2,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+import os
 import numpy as np
 import joblib
 import logging
@@ -37,13 +38,18 @@ logger = logging.getLogger("AIM")
 
 # ------------------ LOAD MODEL ------------------
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "models", "model_v1.pkl")
+SCALER_PATH = os.path.join(BASE_DIR, "models", "scaler_v1.pkl")
+
 try:
-    model = joblib.load("/models/model_v1.pkl")
-    scaler = joblib.load("/models/scaler_v1.pkl")
-    logger.info("Model and scaler loaded successfully")
+    model = joblib.load(MODEL_PATH)
+    scaler = joblib.load(SCALER_PATH)
+    logging.info("Model and scaler loaded successfully")
 except Exception as e:
-    logger.error(f"Failed to load model/scaler: {e}")
+    logging.error(f"Failed to load model/scaler: {e}")
     raise RuntimeError("Model loading failed")
+
 
 # ------------------ DATA SCHEMA ------------------
 

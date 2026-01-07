@@ -38,8 +38,8 @@ logger = logging.getLogger("AIM")
 # ------------------ LOAD MODEL ------------------
 
 try:
-    model = joblib.load("model_v1.pkl")
-    scaler = joblib.load("scaler_v1.pkl")
+    model = joblib.load("/models/model_v1.pkl")
+    scaler = joblib.load("/models/scaler_v1.pkl")
     logger.info("Model and scaler loaded successfully")
 except Exception as e:
     logger.error(f"Failed to load model/scaler: {e}")
@@ -143,6 +143,6 @@ def history():
     records = db.query(Prediction).order_by(Prediction.created_at.desc()).limit(20).all()
     db.close()
 
-    
+
     return records
 

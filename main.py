@@ -22,9 +22,11 @@ app = FastAPI(
 # CORS (restrict later in prod)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -149,6 +151,11 @@ def predict(data: DiabetesInput, db: Session = Depends(get_db)):
 
 
 
+@app.options("/{full_path:path}")
+def options_handler(full_path: str):
+    return {}
+
+    
 @app.get("/history")
 def history(db: Session = Depends(get_db)):
     records = (

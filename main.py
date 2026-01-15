@@ -1,8 +1,9 @@
-# COPYRIGHT (C) © HTTPS://WWW.COMPUTES.COM 2024 . ALL RIGHTS RESERVED.......
-from fastapi import FastAPI, HTTPException
+# COPYRIGHT (C) © HTTPS://WWW.COMPUTES.COM 2026 . ALL RIGHTS RESERVED.......
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import os
+from sqlalchemy.orm import Session
 import numpy as np
 import joblib
 import logging
@@ -26,8 +27,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-db = SessionLocal()
-
 # ------------------ LOGGING ------------------
 
 logging.basicConfig(
@@ -35,6 +34,18 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger("AIM")
+
+
+# -------------------------------------------------
+# DATABASE DEPENDENCY
+# -------------------------------------------------
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 # ------------------ LOAD MODEL ------------------
 
@@ -48,12 +59,14 @@ try:
     logging.info("Model and scaler loaded successfully")
 except Exception as e:
     logging.error(f"Failed to load model/scaler: {e}")
-    raise RuntimeError("Model loading failed")
+    raise RuntimeError("Model initialization failed")
 
 
 # ------------------ DATA SCHEMA ------------------
 
 class DiabetesInput(BaseModel):
+    Name: str = Field(..., min_length=1, max_length=100)
+    Gender: str = Field(..., regex="^(Male|Female|Other)$")
     Pregnancies: float = Field(..., ge=0, le=20)
     Glucose: float = Field(..., ge=0, le=300)
     BloodPressure: float = Field(..., ge=0, le=200)
@@ -78,7 +91,7 @@ def health_check():
     }
 
 @app.post("/api/v1/predict")
-def predict(data: DiabetesInput):
+def predict(data: DiabetesInput, db: Session = Depends(get_db)):
     try:
         features = np.array([[
             data.Pregnancies,
@@ -91,21 +104,16 @@ def predict(data: DiabetesInput):
             data.Age
         ]])
 
-        scaled_features = scaler.transform(features)
-
-        prediction = int(model.predict(scaled_features)[0])
-        proba = model.predict_proba(scaled_features)[0]
+        scaled = scaler.transform(features)
+        prediction = int(model.predict(scaled)[0])
+        proba = model.predict_proba(scaled)[0]
 
         confidence = round(max(proba) * 100, 2)
 
-        logger.info(
-            f"Prediction made | Prediction={prediction} | Confidence={confidence:.2f}"
-        )
-
         record = Prediction(
             name=data.Name,
-            age=data.Age,
             gender=data.Gender,
+            age=data.Age,
             pregnancies=data.Pregnancies,
             glucose=data.Glucose,
             blood_pressure=data.BloodPressure,
@@ -115,8 +123,8 @@ def predict(data: DiabetesInput):
             dpf=data.DiabetesPedigreeFunction,
             prediction=prediction,
             confidence=confidence,
-            positive_prob=proba[1] * 100,
-            negative_prob=proba[0] * 100,
+            positive_prob=round(proba[1] * 100, 2),
+            negative_prob=round(proba[0] * 100, 2),
         )
 
         db.add(record)
@@ -124,31 +132,31 @@ def predict(data: DiabetesInput):
         db.refresh(record)
 
         return {
-            "status": "success",
             "prediction": prediction,
             "confidence": confidence,
             "probabilities": {
-                "negative": round(proba[0] * 100, 2),
-                "positive": round(proba[1] * 100, 2)
+                "positive": round(proba[1] * 100, 2),
+                "negative": round(proba[0] * 100, 2)
             }
         }
 
-     
-
     except Exception as e:
-        logger.error(f"Prediction error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Prediction failed")
+        logger.exception("Prediction error" + e)
+        raise HTTPException(500, "Prediction failed")
 
 
 
 
 
 @app.get("/history")
-def history():
-    db = SessionLocal()
-    records = db.query(Prediction).order_by(Prediction.created_at.desc()).limit(20).all()
-    db.close()
+def history(db: Session = Depends(get_db)):
+    records = (
+        db.query(Prediction)
+        .order_by(Prediction.created_at.desc())
+        .limit(20)
+        .all()
+    )
 
-
+    
     return records
 

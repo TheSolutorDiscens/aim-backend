@@ -66,7 +66,7 @@ except Exception as e:
 
 class DiabetesInput(BaseModel):
     Name: str = Field(..., min_length=1, max_length=100)
-    Gender: str = Field(..., regex="^(Male|Female|Other)$")
+    Gender: Literal["Male", "Female", "Other"]
     Pregnancies: float = Field(..., ge=0, le=20)
     Glucose: float = Field(..., ge=0, le=300)
     BloodPressure: float = Field(..., ge=0, le=200)
@@ -157,6 +157,6 @@ def history(db: Session = Depends(get_db)):
         .all()
     )
 
-    
+
     return records
 

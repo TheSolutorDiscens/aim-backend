@@ -1,7 +1,7 @@
 # COPYRIGHT (C) © HTTPS://WWW.COMPUTES.COM 2026 . ALL RIGHTS RESERVED.......
 from fastapi import FastAPI, HTTPException, Depends , Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.request import PlainTextResponse
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
 import os
 from sqlalchemy.orm import Session

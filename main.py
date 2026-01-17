@@ -8,8 +8,8 @@ from typing import Literal
 import numpy as np
 import joblib
 import logging
-from database import SessionLocal
-from models import Prediction
+from database import SessionLocal, engine
+from models import Prediction, Base
 
 # ------------------ APP SETUP ------------------
 
@@ -19,11 +19,13 @@ app = FastAPI(
     description="Machine Learning API for Diabetes Prediction"
 )
 
+Base.metadata.create_all(bind=engine)
+
 # CORS (restrict later in prod)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
+        "http://localhost:3000/",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
@@ -130,9 +132,14 @@ def predict(data: DiabetesInput, db: Session = Depends(get_db)):
             negative_prob=round(proba[0] * 100, 2),
         )
 
-        db.add(record)
-        db.commit()
-        db.refresh(record)
+        try:
+            db.add(record)
+            db.commit()
+            db.refresh(record)
+        except Exception :
+            db.rollback()
+            logger.exception("Database insert failed")
+
 
         return {
             "prediction": prediction,
@@ -144,7 +151,7 @@ def predict(data: DiabetesInput, db: Session = Depends(get_db)):
         }
 
     except Exception as e:
-        logger.exception("Prediction error" + e)
+        logger.error(f"Prediction error: {e}")
         raise HTTPException(500, "Prediction failed")
 
 
@@ -155,7 +162,7 @@ def predict(data: DiabetesInput, db: Session = Depends(get_db)):
 def options_handler(full_path: str):
     return {}
 
-    
+
 @app.get("/history")
 def history(db: Session = Depends(get_db)):
     records = (

@@ -1,6 +1,7 @@
 # COPYRIGHT (C) © HTTPS://WWW.COMPUTES.COM 2026 . ALL RIGHTS RESERVED.......
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends , Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.request import PlainTextResponse
 from pydantic import BaseModel, Field
 import os
 from sqlalchemy.orm import Session
@@ -19,18 +20,20 @@ app = FastAPI(
     description="Machine Learning API for Diabetes Prediction"
 )
 
-Base.metadata.create_all(bind=engine)
 
 # CORS (restrict later in prod)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000/",
+        "http://localhost:3000",
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
+
+Base.metadata.create_all(bind=engine)
+
 
 # ------------------ LOGGING ------------------
 
@@ -135,10 +138,12 @@ def predict(data: DiabetesInput, db: Session = Depends(get_db)):
         try:
             db.add(record)
             db.commit()
-            db.refresh(record)
         except Exception :
-            db.rollback()
-            logger.exception("Database insert failed")
+            db.rollback()  
+            logger.error("Database insert failed", exc_info=True)
+        finally:
+            db.close()
+
 
 
         return {
@@ -158,9 +163,11 @@ def predict(data: DiabetesInput, db: Session = Depends(get_db)):
 
 
 
-@app.options("/{full_path:path}")
-def options_handler(full_path: str):
-    return {}
+
+@app.options("/{path:path}")
+async def options_handler(path: str, request: Request):
+    return PlainTextResponse("", status_code=200)
+
 
 
 @app.get("/history")

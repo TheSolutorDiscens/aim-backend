@@ -6,21 +6,22 @@ class Prediction(Base):
     __tablename__ = "predictions"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    age = Column(Integer)
-    gender = Column(String)
 
-    pregnancies = Column(Integer)
-    glucose = Column(Integer)
-    blood_pressure = Column(Integer)
-    skin_thickness = Column(Integer)
-    insulin = Column(Integer)
-    bmi = Column(Float)
-    dpf = Column(Float)
+    Name = Column(String, nullable=False)
+    Age = Column(Float, nullable=False)
+    Gender = Column(String, nullable=False)
 
-    prediction = Column(Integer)
-    confidence = Column(Float)
-    positive_prob = Column(Float)
-    negative_prob = Column(Float)
+    Pregnancies = Column(Float, nullable=False)
+    Glucose = Column(Float, nullable=False)
+    BloodPressure = Column(Float, nullable=False)
+    SkinThickness = Column(Float, nullable=False)
+    Nnsulin = Column(Float, nullable=False)
+    BMI = Column(Float, nullable=False)
+    DiabetesPedigreeFunction = Column(Float, nullable=False)
+
+    prediction = Column(Integer, nullable=False)
+    confidence = Column(Float, nullable=False)
+    positive_prob = Column(Float, nullable=False)
+    negative_prob = Column(Float, nullable=False)
 
     created_at = Column(DateTime, default=datetime.utcnow)

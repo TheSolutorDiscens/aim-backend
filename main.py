@@ -32,6 +32,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 Base.metadata.create_all(bind=engine)
 
 
@@ -74,6 +75,7 @@ except Exception as e:
 
 class DiabetesInput(BaseModel):
     Name: str = Field(..., min_length=1, max_length=100)
+    Age: float = Field(..., ge=0, le=120)
     Gender: Literal["Male", "Female", "Other"]
     Pregnancies: float = Field(..., ge=0, le=20)
     Glucose: float = Field(..., ge=0, le=300)
@@ -82,7 +84,6 @@ class DiabetesInput(BaseModel):
     Insulin: float = Field(..., ge=0, le=900)
     BMI: float = Field(..., ge=0, le=100)
     DiabetesPedigreeFunction: float = Field(..., ge=0, le=2.5)
-    Age: float = Field(..., ge=0, le=120)
 
 # ------------------ ROUTES ------------------
 
@@ -116,28 +117,31 @@ def predict(data: DiabetesInput, db: Session = Depends(get_db)):
         prediction = int(model.predict(scaled)[0])
         proba = model.predict_proba(scaled)[0]
 
-        confidence = round(max(proba) * 100, 2)
+        confidence = float(round(max(proba) * 100, 2))
+        positive_prob = float(round(proba[1] * 100, 2))
+        negative_prob = float(round(proba[0] * 100, 2))
 
         record = Prediction(
             name=data.Name,
+            age=int(data.Age),
             gender=data.Gender,
-            age=data.Age,
-            pregnancies=data.Pregnancies,
-            glucose=data.Glucose,
-            blood_pressure=data.BloodPressure,
-            skin_thickness=data.SkinThickness,
-            insulin=data.Insulin,
-            bmi=data.BMI,
-            dpf=data.DiabetesPedigreeFunction,
+            pregnancies=int(data.Pregnancies),
+            glucose=float(data.Glucose),
+            blood_pressure=float(data.BloodPressure),
+            skin_thickness=float(data.SkinThickness),
+            insulin=float(data.Insulin),
+            bmi=float(data.BMI),
+            dpf=float(data.DiabetesPedigreeFunction),
             prediction=prediction,
             confidence=confidence,
-            positive_prob=round(proba[1] * 100, 2),
-            negative_prob=round(proba[0] * 100, 2),
+            positive_prob=positive_prob,
+            negative_prob=negative_prob,
         )
 
         try:
             db.add(record)
             db.commit()
+            db.refresh(record)
         except Exception :
             db.rollback()  
             logger.error("Database insert failed", exc_info=True)

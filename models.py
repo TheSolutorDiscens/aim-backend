@@ -15,7 +15,7 @@ class Prediction(Base):
     Glucose = Column(Float, nullable=False)
     BloodPressure = Column(Float, nullable=False)
     SkinThickness = Column(Float, nullable=False)
-    Nnsulin = Column(Float, nullable=False)
+    Insulin = Column(Float, nullable=False)
     BMI = Column(Float, nullable=False)
     DiabetesPedigreeFunction = Column(Float, nullable=False)
 

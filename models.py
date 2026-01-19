@@ -7,17 +7,17 @@ class Prediction(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    Name = Column(String, nullable=False)
-    Age = Column(Float, nullable=False)
-    Gender = Column(String, nullable=False)
+    name = Column(String, nullable=False)
+    age = Column(Float, nullable=False)
+    gender = Column(String, nullable=False)
 
-    Pregnancies = Column(Float, nullable=False)
-    Glucose = Column(Float, nullable=False)
-    BloodPressure = Column(Float, nullable=False)
-    SkinThickness = Column(Float, nullable=False)
-    Insulin = Column(Float, nullable=False)
-    BMI = Column(Float, nullable=False)
-    DiabetesPedigreeFunction = Column(Float, nullable=False)
+    pregnancies = Column(Float, nullable=False)
+    glucose = Column(Float, nullable=False)
+    blood_pressure = Column(Float, nullable=False)
+    skin_thickness = Column(Float, nullable=False)
+    insulin = Column(Float, nullable=False)
+    bmi = Column(Float, nullable=False)
+    dpf = Column(Float, nullable=False)
 
     prediction = Column(Integer, nullable=False)
     confidence = Column(Float, nullable=False)
